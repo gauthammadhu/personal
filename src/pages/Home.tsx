@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   LogoutOutlined,
   UserOutlined,
@@ -17,6 +17,7 @@ const Home: React.FC = () => {
   const { logout } = useAuth0();
   const [selectedTab, setSelectedTab] = useState('personal');
   const [collapsed, setCollapsed] = useState(false);
+  const [smallView, setSmallView] = useState(false);
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -30,7 +31,7 @@ const Home: React.FC = () => {
     });
   };
 
-  const topNavItems: MenuProps['items'] = [
+  const sideNavItems: MenuProps['items'] = [
     {
       key: 'personal',
       icon: <UserOutlined />,
@@ -61,29 +62,70 @@ const Home: React.FC = () => {
     }
   };
 
+  // Collapse sidebar on small screens
+useEffect(() => {
+  const handleResize = () => {
+    if (window.innerWidth < 800) {
+      setCollapsed(true);
+      setSmallView(true);
+    } else {
+      setCollapsed(false);
+      setSmallView(false);
+    }
+  };
+
+  handleResize(); // Initial check
+
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
+
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        style={{
-          overflow: 'auto',
-          height: '100vh',
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          bottom: 0,
-        }}
-      >
-        <div style={{ height: 64, background: '#001529', marginBottom: 8 }} />
-        <Menu
-          theme="dark"
-          mode="inline"
-          defaultSelectedKeys={['1']}
-          items={[]}
-        />
-      </Sider>
+  trigger={null}
+  collapsible
+  collapsed={collapsed}
+  style={{
+    overflow: 'auto',
+    height: '100vh',
+    position: 'fixed',
+    left: 0,
+    top: 0,
+    bottom: 0,
+  }}
+>
+  <div
+    style={{
+      height: 64,
+      background: '#001529',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: collapsed ? 'center' : 'flex-end',
+      padding: '0 16px',
+    }}
+  >
+    <Button
+      type="text"
+      icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+      onClick={() => setCollapsed(!collapsed)}
+      style={{
+        color: 'white',
+        fontSize: 16,
+      }}
+    />
+  </div>
+
+  <Menu
+    theme="dark"
+    mode="inline"
+    selectedKeys={[selectedTab]}
+    onClick={({ key }) => setSelectedTab(key)}
+    items={sideNavItems}
+  />
+</Sider>
+
 
       <Layout style={{ marginLeft: collapsed ? 80 : 200 }}>
         <Header
@@ -97,33 +139,28 @@ const Home: React.FC = () => {
             background: '#001529',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             padding: '0 16px',
           }}
         >
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{
-              color: 'white',
-              fontSize: 16,
-              marginRight: 24,
-            }}
-          />
-          <Menu
-            theme="dark"
-            mode="horizontal"
-            selectedKeys={[selectedTab]}
-            onClick={({ key }) => setSelectedTab(key)}
-            items={topNavItems}
-            style={{ flex: 1, background: 'transparent' }}
-          />
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {/* <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{
+                color: 'white',
+                fontSize: 16,
+                marginRight: 16,
+              }}
+            /> */}
+          </div>
           <Button
             type="primary"
             icon={<LogoutOutlined />}
             onClick={handleLogout}
           >
-            Logout
+            {smallView ? "" : 'Logout'}
           </Button>
         </Header>
 
